@@ -111,46 +111,36 @@ vars, no secrets at runtime. Every route prerenders: `/play/[venue]` enumerates
 its paths via `generateStaticParams` (all venues are known config), and
 `app/manifest.ts` opts in with `dynamic = 'force-static'`.
 
-### Cloudflare Git integration (release → dev preview)
+### Cloudflare Git integration
 
 Connect `huangzl97/pip-web` using the **Cloudflare Pages GitHub App**, with access
 limited to this repository. No GitHub Actions deployment token or account ID
-is needed. The GitHub CI workflow remains a PR check; Cloudflare performs its
-own full gate before uploading.
+is needed. The GitHub CI workflow remains a PR check. Production versus Preview,
+source branches and automatic deployments are controlled by the project owner
+in Cloudflare settings, not by a repository-side deployment restriction.
 
 Configure the Pages project:
 
 | Setting | Value |
 |---|---|
-| Production branch | `main` (never `release`) |
-| Automatic production deployments | Disabled |
-| Preview branch deployments | Custom: include only `release` |
 | Framework preset | None |
 | Root directory | Repository root |
-| Build command | `pnpm build:preview` |
+| Build command | `pnpm build` |
 | Build output directory | `out` |
 | Build environment | `NODE_VERSION=22` |
-| Preview-only environment variable | `PIP_PREVIEW_ONLY=true` |
 
-The Preview marker is not a secret. Set it only in Preview, not Production.
-The build command refuses other branches and environments before running
-`pnpm test:all` and `pnpm build`. Keep pnpm selected via `packageManager`;
-the lockfile must be installed without changes.
+No `PIP_PREVIEW_ONLY` variable is required. To run the full gate in Cloudflare
+as well as GitHub CI, use `pnpm test:all && pnpm build` as the build command.
+Keep pnpm selected via `packageManager`; install from the lockfile.
 
-During first-time setup, if Pages requires an initial production build, do not
-add the Preview marker to make it pass. The guard should reject it. Disable
-automatic production deployments and configure the release Preview before
-retrying. The configuration must be committed to the branch being built.
-
-Cloudflare calls this environment **Preview**; it is our dev environment.
-The branch alias is `release.<project-subdomain>.pages.dev`. No separate Git
-branch named dev is required. Pages honors `public/_headers`, including SW
+When `release` is configured as a Preview branch, its alias is
+`release.<project-subdomain>.pages.dev`. Pages honors `public/_headers`, including SW
 revalidation and extensionless image MIME types. Verify resource integrity
 and offline installation against the real preview URL after deployment.
 
-Do not add production backend or analytics configuration to Preview.
 Local play and offline resources work without an account backend.
-No automatic version bump, tag, GitHub release or production deployment runs.
+Configure any backend and analytics variables for the intended environment.
+No automatic version bump, tag or GitHub release runs.
 
 The earlier Vercel configuration and Actions-based Cloudflare uploader have
 been removed. The previously created GitHub dev environment is unused by the

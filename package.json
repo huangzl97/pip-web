@@ -6,7 +6,6 @@
   "packageManager": "pnpm@11.0.9",
   "scripts": {
     "dev": "next dev",
-    "build:preview": "node scripts/check-pages-preview.mjs && pnpm test:all && pnpm build",
     "build": "node scripts/guard-production-build.mjs && node scripts/gen-credits.mjs && next build && node scripts/gen-llms.mjs && node scripts/stamp-sw.mjs",
     "start": "next start",
     "lint": "biome lint .",
