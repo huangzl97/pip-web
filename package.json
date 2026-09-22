@@ -6,7 +6,8 @@
   "packageManager": "pnpm@11.0.9",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/guard-production-build.mjs && node scripts/gen-credits.mjs && next build && node scripts/stamp-sw.mjs && node scripts/gen-llms.mjs",
+    "build:preview": "node scripts/check-pages-preview.mjs && pnpm test:all && pnpm build",
+    "build": "node scripts/guard-production-build.mjs && node scripts/gen-credits.mjs && next build && node scripts/gen-llms.mjs && node scripts/stamp-sw.mjs",
     "start": "next start",
     "lint": "biome lint .",
     "lint:fix": "biome check --write --unsafe .",
@@ -31,7 +32,8 @@
     "play-it-out-cost": "tsx scripts/play-it-out-cost.ts",
     "odds-band-coverage": "tsx scripts/odds-band-coverage.ts",
     "lead-band": "tsx scripts/lead-band.ts",
-    "cash-sim": "tsx scripts/cash-sim.ts"
+    "cash-sim": "tsx scripts/cash-sim.ts",
+    "test:offline": "node scripts/test-offline.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

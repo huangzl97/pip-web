@@ -51,3 +51,7 @@ If you change how it *looks*, you stay in components + theme tokens.
 - **Explicitly out of scope (for now):** online multiplayer, accounts as identity, real money,
   cash games, non-Hold'em variants.
 - See the repo root [`PLAN.md`](../PLAN.md) for the original plan and rationale.
+
+## Offline play
+
+See [PWA offline play](./pwa-offline.md) for the retained offline enhancement and its verification commands.

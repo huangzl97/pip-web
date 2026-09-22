@@ -111,46 +111,53 @@ vars, no secrets at runtime. Every route prerenders: `/play/[venue]` enumerates
 its paths via `generateStaticParams` (all venues are known config), and
 `app/manifest.ts` opts in with `dynamic = 'force-static'`.
 
-Pushes to `main` deploy automatically via
-`.github/workflows/deploy-cloudflare-pages.yaml`: the full `test:all` gate runs
-first, then `wrangler pages deploy out` publishes. The workflow needs two repo
-secrets — `CLOUDFLARE_API_TOKEN` (a token with the *Cloudflare Pages — Edit*
-permission) and `CLOUDFLARE_ACCOUNT_ID` — and a Pages project named `pip-web`.
+### Cloudflare Git integration (release → dev preview)
 
-Production domain: **[playpip.io](https://playpip.io)**.
+Connect `huangzl97/pip-web` using the **Cloudflare Pages GitHub App**, with access
+limited to this repository. No GitHub Actions deployment token or account ID
+is needed. The GitHub CI workflow remains a PR check; Cloudflare performs its
+own full gate before uploading.
 
-### Automatic releases
+Configure the Pages project:
 
-The same workflow cuts a release on every push to `main`, after a green gate +
-successful deploy:
+| Setting | Value |
+|---|---|
+| Production branch | `main` (never `release`) |
+| Automatic production deployments | Disabled |
+| Preview branch deployments | Custom: include only `release` |
+| Framework preset | None |
+| Root directory | Repository root |
+| Build command | `pnpm build:preview` |
+| Build output directory | `out` |
+| Build environment | `NODE_VERSION=22` |
+| Preview-only environment variable | `PIP_PREVIEW_ONLY=true` |
 
-- **Version** auto-bumps — **patch by default**; put `#minor` or `#major` in the
-  commit **subject** (first line only — the body is ignored, so prose mentioning
-  the tokens can't trigger a bump) to bump harder (`#major` wins if both appear).
-- **Every subject since the last release tag is read**, not just the tip and not
-  just the pushed range. The workflow's concurrency group cancels in-progress
-  runs, so a burst of merges leaves only the last run alive — anchoring on the
-  tag means the surviving run still picks up the markers from the merges whose
-  runs were killed. It is the same range the release notes are generated from.
-- The bump is **committed before the build**, so the deployed PWA reports the new
-  version and its build id is the release commit.
-- Then it **tags `vX.Y.Z`, pushes it, and publishes a GitHub Release** with
-  auto-generated notes (diffed from the previous release).
+The Preview marker is not a secret. Set it only in Preview, not Production.
+The build command refuses other branches and environments before running
+`pnpm test:all` and `pnpm build`. Keep pnpm selected via `packageManager`;
+the lockfile must be installed without changes.
 
-Notes:
+During first-time setup, if Pages requires an initial production build, do not
+add the Preview marker to make it pass. The guard should reject it. Disable
+automatic production deployments and configure the release Preview before
+retrying. The configuration must be committed to the branch being built.
 
-- No infinite loop, but **`[skip ci]` on the release commit is load-bearing**: the
-  commit is pushed with a GitHub App token (it has to clear the ruleset on `main`),
-  and App pushes _do_ retrigger workflows. Without the marker the deploy re-runs
-  itself on its own release commit, forever. The workflow declares
-  `permissions: contents: write` and checks out with `fetch-depth: 0` (needed to
-  push, to read the last tag, and to diff release notes).
-- A manual `workflow_dispatch` run **redeploys the current version** — no bump, no
-  release (the release steps are gated to `push` events).
-- This pushes **directly to `main`**, which a ruleset otherwise blocks. `GITHUB_TOKEN`
-  cannot be a bypass actor, so the release commit is pushed as a dedicated GitHub App
-  whose credentials live only in this repo's secrets. It is deliberately not the app
-  any other automation uses — sharing it would hand that automation a bypass too.
+Cloudflare calls this environment **Preview**; it is our dev environment.
+The branch alias is `release.<project-subdomain>.pages.dev`. No separate Git
+branch named dev is required. Pages honors `public/_headers`, including SW
+revalidation and extensionless image MIME types. Verify resource integrity
+and offline installation against the real preview URL after deployment.
+
+Do not add production backend or analytics configuration to Preview.
+Local play and offline resources work without an account backend.
+No automatic version bump, tag, GitHub release or production deployment runs.
+
+The earlier Vercel configuration and Actions-based Cloudflare uploader have
+been removed. The previously created GitHub dev environment is unused by the
+native Git integration; it does not need deployment secrets.
+
+See [Cloudflare Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/)
+and [branch controls](https://developers.cloudflare.com/pages/configuration/branch-build-controls/).
 
 ### Versioning & cache-busting
 

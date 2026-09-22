@@ -86,7 +86,9 @@ export const useMembership = create<MembershipState>()((set) => ({
     if (started) return
     started = true
 
-    const apply = (status: string) => {
+    const apply = (status: string, ready: boolean) => {
+      // Initial signed-out is provisional: do not erase a returning member's offline row.
+      if (!ready && status !== 'off') return
       if (status === 'signed-in') {
         void useMembership.getState().refresh()
       } else {
@@ -97,9 +99,11 @@ export const useMembership = create<MembershipState>()((set) => ({
       }
     }
 
-    apply(useSync.getState().status)
+    apply(useSync.getState().status, useSync.getState().ready)
     useSync.subscribe((state, previous) => {
-      if (state.status !== previous.status) apply(state.status)
+      if (state.status !== previous.status || state.ready !== previous.ready) {
+        apply(state.status, state.ready)
+      }
     })
   },
 

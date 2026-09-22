@@ -39,3 +39,7 @@ Hold'em web app). This mirrors [`CLAUDE.md`](./CLAUDE.md); full docs are in
 
 `pnpm test:all` passes — format, types, lint (biome), AVA, knip, audit — (plus
 `pnpm build` for structural changes). Verify UI by running `pnpm dev`. Commit/push only when asked.
+
+## Product reuse
+
+- 本项目新增玩法应复用完整产品流程，不另造简化壳。
