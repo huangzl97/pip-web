@@ -84,14 +84,13 @@ code is the lossless option for everything.
 
 ## Offline (the service worker)
 
-The whole game is client-side, so after the first visit Pip is fully playable
-offline. `public/sw.js` is a small, hand-rolled shell — no build-tool coupling:
-
-- **Navigations:** network-first, falling back to the cached shell (`/`) offline.
-- **Hashed/static assets** (`/_next/static`, icons, venue art): cache-first.
-- **Everything else:** straight to the network.
-- **404s are never cached** (the `response.ok` guards), so a deploy-window 404 can't
-  become an asset forever.
+The whole game is client-side. `scripts/stamp-sw.mjs` lists exported routes and
+assets in `public/sw.js` with SHA-256 integrity checks. The worker downloads the
+complete release before Settings says **Ready to play offline**. Exported game
+routes, scripts, fonts and art are then served from that release's cache; account,
+cloud sync and external requests still need a connection. A failed download leaves
+the previous release in place and Settings offers a retry. Unknown offline routes
+return a 404 instead of showing an unrelated page.
 
 The worker is registered in production only, from `useServiceWorkerUpdate`
 (see [development.md](./development.md#versioning--cache-busting) for the update flow

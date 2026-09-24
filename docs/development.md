@@ -161,15 +161,17 @@ client bundle:
   the Settings footer (`Pip v0.1.0 · <build id>`).
 - `NEXT_PUBLIC_BUILD_ID` — the git short SHA. Uniquely identifies each deploy.
 
-The service worker's cache name is `pip-__BUILD_ID__`; `scripts/stamp-sw.mjs` (run
-by `pnpm build`, after `next build`) stamps the git short SHA into `out/sw.js`. So
-**every deploy ships a byte-different `sw.js`** → the browser installs a new worker
-→ `activate` purges the old cache. That's the cache-bust.
+`scripts/stamp-sw.mjs` runs after the final export files are generated. It builds
+the offline resource list and SHA-256 digests, then stamps a content-derived cache
+name into `out/sw.js`. Changed content ships a byte-different worker; the new
+worker downloads the full release before reporting it ready. The previous release
+stays available if the download fails.
 
 On an update the new worker **waits** rather than taking over silently.
 `useServiceWorkerUpdate` (registered from `UpdatePrompt`, mounted in the root
 layout) detects the waiting worker — re-checking hourly and whenever the tab regains
-focus — and shows a "new version is ready → Reload" nudge. Reload posts
-`SKIP_WAITING`; the worker activates and the page reloads onto the new assets. See
+focus — and shows a "new version is ready → Reload" nudge. Reload checks that all
+open tabs can safely refresh before the worker takes over. Settings shows whether
+the offline download is complete and offers a retry if it fails. See
 [data-and-offline.md](./data-and-offline.md#offline-the-service-worker) for the
 offline caching strategy itself.
