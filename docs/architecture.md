@@ -128,8 +128,8 @@ choreography (timers, sounds, transitions) on top.
   across devices with no account via a shared backup envelope (file / copyable code /
   QR deep link). See [data-and-offline.md](./data-and-offline.md).
 - **Offline PWA + self-update.** A small hand-rolled service worker (`public/sw.js`)
-  makes the app playable offline after first visit. Its cache name is stamped with
-  the git SHA at build (`scripts/stamp-sw.mjs`) so every deploy busts the cache; a new
+  caches the exported game, routes and assets before reporting offline readiness.
+  `scripts/stamp-sw.mjs` keys the cache to the exported content; a complete new
   version waits and prompts to reload rather than swapping under the player. See
   [development.md](./development.md#versioning--cache-busting).
 - **AI on the main thread.** Equity sims (up to ~1800 iters) run synchronously inside

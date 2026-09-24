@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { RotateCcw } from 'lucide-react'
+import { OfflineStatus } from '@/components/UpdatePrompt'
 import { SyncSection } from '@/components/settings/SyncSection'
 import { TransferDialog } from '@/components/settings/TransferDialog'
 import {
@@ -50,6 +51,7 @@ export function SettingsDialog({
           <HandCoachingSection />
           <TransferSection />
           <ResetSection />
+          <OfflineStatus />
           <div className="flex flex-col items-center gap-1 text-2xs tracking-wide text-muted-foreground/70">
             <a
               href="/credits"
